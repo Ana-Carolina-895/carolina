@@ -150,10 +150,10 @@ body {
   body { background-attachment: scroll; }
 }
 
-@media (max-width: 480px) {
-  body { padding: 20px 4px 24px; }
-  .container { max-width: 100%; }
-  .cards { gap: 10px; }
+@media (max-width: 767px) {
+  body { padding: 24px 0 24px; }
+  .container { max-width: 100%; padding: 0 8px; }
+  .cards { gap: 8px; }
 }
 
 #butterfly-layer {
@@ -351,12 +351,12 @@ function launchBfly(el, onDone) {
 }
 
 const pool = [];
-for (let i = 0; i < 6; i++) pool.push(makeBfly());
+for (let i = 0; i < 12; i++) pool.push(makeBfly());
 
 let scrollTimer = null;
 let isScrolling = false;
 let activeCount = 0;
-const MAX_ACTIVE = 5;
+const MAX_ACTIVE = 10;
 
 function launchOne() {
   if (!isScrolling || activeCount >= MAX_ACTIVE) return;
