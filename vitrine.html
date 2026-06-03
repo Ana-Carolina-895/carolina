@@ -20,23 +20,24 @@
   --sidebar-w: 220px;
   --bottom-bar-h: 64px;
 }
-body { background: var(--bg); font-family: 'Montserrat', sans-serif; min-height: 100vh; }
+body { background: url('public/bg.png') top center / cover no-repeat fixed; font-family: 'Montserrat', sans-serif; min-height: 100vh; }
 
 /* ── HEADER ── */
 .header {
-  background: var(--purple);
-  padding: 20px 28px 18px;
+  background: var(--pink);
+  padding: 14px 28px 12px;
   display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px;
   position: sticky; top: 0; z-index: 200;
 }
-.header-name { font-family: 'Great Vibes', cursive; font-size: 44px; color: var(--pink); line-height: 1; }
-.header-tagline { font-size: 9px; letter-spacing: 3.5px; color: rgba(247,217,225,.55); text-transform: uppercase; font-weight: 400; }
+.header-name { line-height: 1; }
+.header-name img { height: 48px; width: auto; display: block; }
+.header-tagline { font-size: 9px; letter-spacing: 3.5px; color: rgba(56,29,72,.5); text-transform: uppercase; font-weight: 400; }
 .header-back {
   position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
-  color: rgba(247,217,225,.6); font-size: 13px; text-decoration: none;
+  color: rgba(56,29,72,.5); font-size: 13px; text-decoration: none;
   letter-spacing: .5px; transition: color .2s;
 }
-.header-back:hover { color: var(--pink); }
+.header-back:hover { color: var(--purple); }
 .header-wrap { position: relative; width: 100%; display: flex; align-items: center; justify-content: center; }
 
 /* ── LAYOUT ── */
@@ -231,7 +232,7 @@ body { background: var(--bg); font-family: 'Montserrat', sans-serif; min-height:
   <div class="header-wrap">
     <a class="header-back" href="index.html">← Voltar</a>
     <div style="text-align:center">
-      <div class="header-name">Carolina Alves</div>
+      <div class="header-name"><img src="public/hero.png" alt="Carolina Alves"></div>
       <div class="header-tagline">Recomendações</div>
     </div>
   </div>
