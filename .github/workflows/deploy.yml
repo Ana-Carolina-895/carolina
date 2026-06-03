@@ -15,7 +15,7 @@ jobs:
 
       - name: Gerar env.js
         run: |
-          cat > env.js << 'EOF'
+          cat > env.js << EOF
           window.__ENV = {
             FIREBASE_API_KEY: "${{ secrets.FIREBASE_API_KEY }}",
             FIREBASE_AUTH_DOMAIN: "${{ secrets.FIREBASE_AUTH_DOMAIN }}",
