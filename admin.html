@@ -352,6 +352,9 @@ body { background: var(--bg); font-family: 'Montserrat', sans-serif; min-height:
       <div class="nav-item" data-panel="categories">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:8px;vertical-align:middle"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Categorias
       </div>
+      <div class="nav-item" data-panel="links">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:8px;vertical-align:middle"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Links
+      </div>
     </div>
     <div class="main">
 
@@ -429,6 +432,17 @@ body { background: var(--bg); font-family: 'Montserrat', sans-serif; min-height:
         <div class="cat-list" id="cat-list"></div>
       </div>
 
+      <!-- LINKS -->
+      <div class="panel" id="panel-links">
+        <div class="panel-title">Links das Redes</div>
+        <div class="form-grid" style="max-width:480px">
+          <div class="field"><label>YouTube</label><input type="url" id="link-youtube" placeholder="https://youtube.com/@..."></div>
+          <div class="field"><label>Instagram</label><input type="url" id="link-instagram" placeholder="https://instagram.com/..."></div>
+          <div class="field"><label>TikTok</label><input type="url" id="link-tiktok" placeholder="https://tiktok.com/@..."></div>
+          <div class="btn-row"><button class="btn-sm btn-purple" id="btn-save-links">Salvar Links</button></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -480,7 +494,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
-  getDocs, onSnapshot, query, orderBy, serverTimestamp, writeBatch, getDoc }
+  getDocs, onSnapshot, query, orderBy, serverTimestamp, writeBatch, getDoc, setDoc }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const app  = initializeApp(firebaseConfig);
@@ -562,7 +576,7 @@ onAuthStateChanged(auth, user => {
     $('login-screen').style.display = 'none';
     $('admin-screen').style.display = 'block';
     $('topbar-user').textContent = user.email;
-    loadCategories(); listenProducts();
+    loadCategories(); listenProducts(); loadLinks();
   } else {
     $('login-screen').style.display = 'flex';
     $('admin-screen').style.display = 'none';
@@ -1034,6 +1048,35 @@ window.deleteCat = (id, name) => {
     toast('Categoria excluída.', 'success');
   });
 };
+
+// LINKS
+async function loadLinks() {
+  try {
+    const snap = await getDoc(doc(db, 'settings', 'links'));
+    const d = snap.exists() ? snap.data() : {};
+    $('link-youtube').value = d.youtube || '';
+    $('link-instagram').value = d.instagram || '';
+    $('link-tiktok').value = d.tiktok || '';
+  } catch(e) { toast('Erro ao carregar links.', 'error'); }
+}
+
+$('btn-save-links').addEventListener('click', async () => {
+  const btn = $('btn-save-links');
+  const data = {
+    youtube: $('link-youtube').value.trim(),
+    instagram: $('link-instagram').value.trim(),
+    tiktok: $('link-tiktok').value.trim()
+  };
+  for (const [k, v] of Object.entries(data)) {
+    if (v && !/^https:\/\//i.test(v)) { toast('Link de ' + k + ' deve começar com https://', 'error'); return; }
+  }
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  try {
+    await setDoc(doc(db, 'settings', 'links'), data, { merge: true });
+    toast('Links salvos!', 'success');
+  } catch(e) { toast('Erro ao salvar: ' + e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Salvar Links'; }
+});
 
 function escHtml(str) {
   if(!str) return '';
