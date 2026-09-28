@@ -248,6 +248,7 @@ body {
   to   { transform: scaleX(0.2); }
 }
 </style>
+<script src="env.js"></script>
 </head>
 <body>
 <div id="butterfly-layer"></div>
@@ -255,14 +256,14 @@ body {
 <div class="container">
   <img src="public/hero.png" alt="Carolina Alves" style="width:100%; display:block; opacity:0; animation: cardIn 0.6s ease 0s forwards;">
   <div class="header">
-    <div class="header-tagline">Contato &amp; Parceria</div>
+    <div class="header-tagline" id="tagline">Contato &amp; Parceria</div>
   </div>
 
   <div class="contact-wrap">
     <div class="contact-card">
-      <span class="contact-label">E-mail</span>
-      <div class="contact-title">Vamos conversar?</div>
-      <p class="contact-desc">Para colaborações, parcerias e propostas comerciais,<br>entre em contato pelo e-mail abaixo.</p>
+      <span class="contact-label" id="ctLabel">E-mail</span>
+      <div class="contact-title" id="ctTitle">Vamos conversar?</div>
+      <p class="contact-desc" id="ctDesc">Para colaborações, parcerias e propostas comerciais,<br>entre em contato pelo e-mail abaixo.</p>
 
       <div class="email-row" id="emailRow" title="Clique para copiar">
         <span class="email-text" id="emailText">projetoide.missoes2005@gmail.com</span>
@@ -271,14 +272,16 @@ body {
     </div>
   </div>
 
-  <a href="index.html" class="back-link">← Voltar</a>
-  <div class="footer">© 2025 Carolina Alves</div>
+  <a href="index.html" class="back-link" id="backLink">← Voltar</a>
+  <div class="footer" id="footer">© 2025 Carolina Alves</div>
 </div>
 
 <div class="toast" id="toast">E-mail copiado!</div>
 
 <script>
-const EMAIL = 'projetoide.missoes2005@gmail.com';
+let EMAIL = 'projetoide.missoes2005@gmail.com';
+let LBL_COPY = 'Copiar';
+let LBL_COPIED = 'Copiado!';
 const copyBtn = document.getElementById('copyBtn');
 const emailRow = document.getElementById('emailRow');
 const toast = document.getElementById('toast');
@@ -287,11 +290,11 @@ let toastTimer;
 function copyEmail(e) {
   e.stopPropagation();
   navigator.clipboard.writeText(EMAIL).then(() => {
-    copyBtn.textContent = 'Copiado!';
+    copyBtn.textContent = LBL_COPIED;
     copyBtn.classList.add('copied');
     showToast();
     setTimeout(() => {
-      copyBtn.textContent = 'Copiar';
+      copyBtn.textContent = LBL_COPY;
       copyBtn.classList.remove('copied');
     }, 2000);
   }).catch(() => {
@@ -313,8 +316,48 @@ function showToast() {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
+window.__setEmail = v => { EMAIL = v; };
+window.__setLabels = (a, b) => { if (a) LBL_COPY = a; if (b) LBL_COPIED = b; };
+
 copyBtn.addEventListener('click', copyEmail);
 emailRow.addEventListener('click', copyEmail);
+</script>
+
+<script src="firebase-config.js"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const $ = id => document.getElementById(id);
+const setText = (id, v) => { if (v) $(id).textContent = v; };
+
+(async () => {
+  try {
+    const db = getFirestore(initializeApp(firebaseConfig));
+    const [a, b] = await Promise.all([getDoc(doc(db, 'settings', 'contato')), getDoc(doc(db, 'settings', 'site'))]);
+    const c = a.exists() ? a.data() : {};
+    const s = b.exists() ? b.data() : {};
+
+    if (c.pageTitle) document.title = c.pageTitle;
+    setText('tagline', c.tagline);
+    setText('ctLabel', c.label);
+    setText('ctTitle', c.title);
+    if (c.desc) {
+      const p = $('ctDesc');
+      p.textContent = '';
+      c.desc.split('\n').forEach((line, i) => {
+        if (i) p.appendChild(document.createElement('br'));
+        p.appendChild(document.createTextNode(line));
+      });
+    }
+    if (c.email) { window.__setEmail(c.email); setText('emailText', c.email); }
+    setText('copyBtn', c.copyBtn);
+    setText('toast', c.toast);
+    setText('backLink', c.back);
+    setText('footer', s.footer);
+    window.__setLabels(c.copyBtn, c.copiedBtn);
+  } catch (e) { /* mantém textos padrão */ }
+})();
 </script>
 
 <script>
