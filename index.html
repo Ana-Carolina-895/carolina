@@ -216,7 +216,7 @@ body {
 
   </div>
 
-  <div class="footer">© 2025 Carolina Alves</div>
+  <div class="footer" id="footer">© 2025 Carolina Alves</div>
 </div>
 
 <script>
@@ -384,13 +384,15 @@ import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10
   try {
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const snap = await getDoc(doc(db, 'settings', 'links'));
-    if (!snap.exists()) return;
-    const d = snap.data();
+    const [l, st] = await Promise.all([getDoc(doc(db, 'settings', 'links')), getDoc(doc(db, 'settings', 'site'))]);
+    const d = l.exists() ? l.data() : {};
     const map = { 'link-youtube': d.youtube, 'link-instagram': d.instagram, 'link-tiktok': d.tiktok };
     for (const [id, url] of Object.entries(map)) {
       if (url && /^https:\/\//i.test(url)) document.getElementById(id).href = url;
     }
+    const t = st.exists() ? st.data() : {};
+    if (t.siteTitle) document.title = t.siteTitle;
+    if (t.footer) document.getElementById('footer').textContent = t.footer;
   } catch (e) { /* mantém links padrão em caso de falha */ }
 })();
 </script>
