@@ -355,6 +355,9 @@ body { background: var(--bg); font-family: 'Montserrat', sans-serif; min-height:
       <div class="nav-item" data-panel="links">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:8px;vertical-align:middle"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Links
       </div>
+      <div class="nav-item" data-panel="textos">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:8px;vertical-align:middle"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>Textos
+      </div>
     </div>
     <div class="main">
 
@@ -440,6 +443,29 @@ body { background: var(--bg); font-family: 'Montserrat', sans-serif; min-height:
           <div class="field"><label>Instagram</label><input type="url" id="link-instagram" placeholder="https://instagram.com/..."></div>
           <div class="field"><label>TikTok</label><input type="url" id="link-tiktok" placeholder="https://tiktok.com/@..."></div>
           <div class="btn-row"><button class="btn-sm btn-purple" id="btn-save-links">Salvar Links</button></div>
+        </div>
+      </div>
+
+      <!-- TEXTOS -->
+      <div class="panel" id="panel-textos">
+        <div class="panel-title">Textos do Site</div>
+        <div class="form-grid" style="max-width:560px">
+          <div class="panel-title" style="font-size:14px;margin:0">Geral (Home e Contato)</div>
+          <div class="field"><label>Título da aba (Home)</label><input type="text" id="txt-siteTitle" maxlength="80"></div>
+          <div class="field"><label>Rodapé</label><input type="text" id="txt-footer" maxlength="120"></div>
+
+          <div class="panel-title" style="font-size:14px;margin:12px 0 0">Página de Contato</div>
+          <div class="field"><label>Título da aba (Contato)</label><input type="text" id="txt-pageTitle" maxlength="80"></div>
+          <div class="field"><label>Subtítulo do topo</label><input type="text" id="txt-tagline" maxlength="80"></div>
+          <div class="field"><label>Rótulo do cartão</label><input type="text" id="txt-label" maxlength="40"></div>
+          <div class="field"><label>Título do cartão</label><input type="text" id="txt-title" maxlength="80"></div>
+          <div class="field"><label>Descrição (Enter quebra linha)</label><textarea id="txt-desc" maxlength="400"></textarea></div>
+          <div class="field"><label>E-mail de contato</label><input type="email" id="txt-email" maxlength="120"></div>
+          <div class="field"><label>Botão copiar</label><input type="text" id="txt-copyBtn" maxlength="20"></div>
+          <div class="field"><label>Botão após copiar</label><input type="text" id="txt-copiedBtn" maxlength="20"></div>
+          <div class="field"><label>Aviso ao copiar</label><input type="text" id="txt-toast" maxlength="60"></div>
+          <div class="field"><label>Link voltar</label><input type="text" id="txt-back" maxlength="30"></div>
+          <div class="btn-row"><button class="btn-sm btn-purple" id="btn-save-textos">Salvar Textos</button></div>
         </div>
       </div>
 
@@ -576,7 +602,7 @@ onAuthStateChanged(auth, user => {
     $('login-screen').style.display = 'none';
     $('admin-screen').style.display = 'block';
     $('topbar-user').textContent = user.email;
-    loadCategories(); listenProducts(); loadLinks();
+    loadCategories(); listenProducts(); loadLinks(); loadTextos();
   } else {
     $('login-screen').style.display = 'flex';
     $('admin-screen').style.display = 'none';
@@ -1076,6 +1102,37 @@ $('btn-save-links').addEventListener('click', async () => {
     toast('Links salvos!', 'success');
   } catch(e) { toast('Erro ao salvar: ' + e.message, 'error'); }
   finally { btn.disabled = false; btn.textContent = 'Salvar Links'; }
+});
+
+// TEXTOS
+const TXT_SITE = ['siteTitle', 'footer'];
+const TXT_CONTATO = ['pageTitle', 'tagline', 'label', 'title', 'desc', 'email', 'copyBtn', 'copiedBtn', 'toast', 'back'];
+
+async function loadTextos() {
+  try {
+    const [a, b] = await Promise.all([getDoc(doc(db, 'settings', 'site')), getDoc(doc(db, 'settings', 'contato'))]);
+    const site = a.exists() ? a.data() : {};
+    const ct = b.exists() ? b.data() : {};
+    TXT_SITE.forEach(k => { $('txt-' + k).value = site[k] || ''; });
+    TXT_CONTATO.forEach(k => { $('txt-' + k).value = ct[k] || ''; });
+  } catch(e) { toast('Erro ao carregar textos.', 'error'); }
+}
+
+$('btn-save-textos').addEventListener('click', async () => {
+  const btn = $('btn-save-textos');
+  const site = {}, ct = {};
+  TXT_SITE.forEach(k => { site[k] = $('txt-' + k).value.trim(); });
+  TXT_CONTATO.forEach(k => { ct[k] = $('txt-' + k).value.trim(); });
+  if (ct.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ct.email)) { toast('E-mail inválido.', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  try {
+    await Promise.all([
+      setDoc(doc(db, 'settings', 'site'), site, { merge: true }),
+      setDoc(doc(db, 'settings', 'contato'), ct, { merge: true })
+    ]);
+    toast('Textos salvos!', 'success');
+  } catch(e) { toast('Erro ao salvar: ' + e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Salvar Textos'; }
 });
 
 function escHtml(str) {
